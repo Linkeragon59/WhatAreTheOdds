@@ -2,3 +2,7 @@
 	path = backend/ThirdParty/nlohmannjson/json
 	url = https://github.com/nlohmann/json.git
 	ignore = dirty
+[submodule "backend/ThirdParty/restbed/restbed"]
+	path = backend/ThirdParty/restbed/restbed
+	url = https://github.com/Linkeragon59/restbed.git
+	ignore = dirty
