@@ -21,6 +21,9 @@ class WhatAreTheOddsAPI {
           errorCallback(textResponse);
         })
       }
+    }).catch(error => {
+      console.error(error);
+      errorCallback("The file couldn't be uploaded");
     });
   }
 }

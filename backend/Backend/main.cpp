@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
 	try
 	{
 		std::shared_ptr<restbed::Resource> resource = std::make_shared<restbed::Resource>();
-		resource->set_path("/"); // TODO: Try to set a meaningful path
+		resource->set_path("/odds");
 		resource->set_method_handler("OPTIONS", [](const std::shared_ptr<restbed::Session> aSession)
 		{
 			aSession->close(restbed::OK);
