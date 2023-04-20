@@ -1,15 +1,34 @@
 ﻿#include "WhatAreTheOdds.h"
 
-#include <iostream>
 #include <fstream>
 #include <filesystem>
 
 #include "sqlite3.h"
 
 #define WHAT_ARE_THE_ODDS_VERBOSE 0
+#if WHAT_ARE_THE_ODDS_VERBOSE
+#include <iostream>
+#endif
 
 namespace WhatAreTheOdds
 {
+	bool locOpenJson(const char* aJsonPath, nlohmann::json& aJsonDataOut)
+	{
+		std::ifstream stream(aJsonPath);
+		if (!stream.is_open())
+			return false;
+
+		try
+		{
+			aJsonDataOut = nlohmann::json::parse(stream);
+			return true;
+		}
+		catch (const nlohmann::json::parse_error&)
+		{
+			return false;
+		}
+	}
+
 	void MillenniumFalconData::Clear()
 	{
 		myAutonomy = 0;
@@ -20,66 +39,56 @@ namespace WhatAreTheOdds
 
 	bool MillenniumFalconData::Parse(const char* aJsonPath)
 	{
-		std::ifstream stream(aJsonPath);
-		if (!stream.is_open())
-		{
-			std::cerr << "Couldn't open Millennium Falcon data at path: " << aJsonPath << std::endl;
+		nlohmann::json data;
+		if (!locOpenJson(aJsonPath, data))
 			return false;
-		}
-		nlohmann::json data = nlohmann::json::parse(stream);
-		stream.close();
 
 		Clear();
+
+		// Validate the JSON data:
+		bool dataValid = data.contains("autonomy") && data.at("autonomy").is_number_integer();
+		dataValid &= data.contains("departure") && data.at("departure").is_string();
+		dataValid &= data.contains("arrival") && data.at("arrival").is_string();
+		dataValid &= data.contains("routes_db") && data.at("routes_db").is_string();
+		if (!dataValid)
+			return false;
+
 		data.at("autonomy").get_to(myAutonomy);
 		data.at("departure").get_to(myDeparture);
 		data.at("arrival").get_to(myArrival);
 
+		sqlite3* routesDb;
 		std::filesystem::path path(aJsonPath);
 		path.replace_filename(data.at("routes_db").get<std::string>());
-		sqlite3* routesDb;
-		// TODO: First check that the file exists, as sqlite3_open creates it otherwise
-		if (sqlite3_open(path.string().c_str(), &routesDb) != SQLITE_OK)
-		{
-			std::cerr << "Couldn't open Millennium Falcon routes DB at path: " << path << std::endl;
+		// First use ifstream::good() to check that the file exists as sqlite3_open will actually create an empty .db file otherwise
+		if (!std::ifstream(path.string().c_str()).good() || sqlite3_open(path.string().c_str(), &routesDb) != SQLITE_OK)
 			return false;
-		}
 
 		auto selectCallback = [](void* data, int argc, char** argv, char** azColName) -> int {
-			Route newRoute;
-			for (int i = 0; i < argc; i++)
-			{
-				if (!azColName[i] || !argv[i])
-					continue;
+			if (argc != 3)
+				return 1;
 
-				if (strcmp(azColName[i], "origin") == 0)
-				{
-					newRoute.myOrigin = argv[i];
-				}
-				else if (strcmp(azColName[i], "destination") == 0)
-				{
-					newRoute.myDestination = argv[i];
-				}
-				else if (strcmp(azColName[i], "travel_time") == 0)
-				{
-					newRoute.myTravelTime = std::stoi(argv[i]);
-				}
+			const char* columns[3] = { "origin" , "destination" , "travel_time" };
+			for (int i = 0; i < 3; ++i)
+			{
+				if (!argv[i] || !azColName[i] || strcmp(azColName[i], columns[i]) != 0)
+					return 1;
 			}
 
 			std::vector<Route>* routes = reinterpret_cast<std::vector<Route>*>(data);
-			routes->push_back(newRoute);
-			return SQLITE_OK;
+			routes->push_back({ argv[0], argv[1], std::stoi(argv[2]) });
+			return 0;
 		};
 
 		char* err;
-		bool ret = sqlite3_exec(routesDb, "SELECT * FROM 'routes'", selectCallback, &myRoutes, &err) == SQLITE_OK;
-		if (!ret)
+		bool success = sqlite3_exec(routesDb, "SELECT * FROM 'routes'", selectCallback, &myRoutes, &err) == SQLITE_OK;
+		if (!success)
 		{
-			std::cerr << "Failed to read the routes DB with error: " << err << std::endl;
 			sqlite3_free(err);
 		}
 
 		sqlite3_close(routesDb);
-		return ret;
+		return success;
 	}
 
 	void EmpireData::Clear()
@@ -90,14 +99,9 @@ namespace WhatAreTheOdds
 
 	bool EmpireData::Parse(const char* aJsonPath)
 	{
-		std::ifstream stream(aJsonPath);
-		if (!stream.is_open())
-		{
-			std::cerr << "Couldn't open Empire data at path: " << aJsonPath << std::endl;
+		nlohmann::json data;
+		if (!locOpenJson(aJsonPath, data))
 			return false;
-		}
-		nlohmann::json data = nlohmann::json::parse(stream);
-		stream.close();
 
 		return Parse(data);
 	}
@@ -105,9 +109,21 @@ namespace WhatAreTheOdds
 	bool EmpireData::Parse(const nlohmann::json& someData)
 	{
 		Clear();
+
+		// Validate the JSON data:
+		bool dataValid = someData.contains("countdown") && someData.at("countdown").is_number_integer();
+		dataValid &= someData.contains("bounty_hunters") && someData.at("bounty_hunters").is_array();
+		if (!dataValid)
+			return false;
+
 		someData.at("countdown").get_to(myCountDown);
 		for (const nlohmann::json& bountyHunterData : someData.at("bounty_hunters"))
 		{
+			bool bountyHunterDataValid = bountyHunterData.contains("planet") && bountyHunterData.at("planet").is_string();
+			bountyHunterDataValid &= bountyHunterData.contains("day") && bountyHunterData.at("day").is_number_integer();
+			if (!bountyHunterDataValid)
+				return false;
+
 			BountyHunter bountyHunter;
 			bountyHunterData.at("planet").get_to(bountyHunter.myPlanet);
 			bountyHunterData.at("day").get_to(bountyHunter.myDay);

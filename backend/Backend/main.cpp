@@ -35,16 +35,28 @@ int main(int argc, char* argv[])
 			size_t contentLength = request->get_header("Content-Length", 0);
 			aSession->fetch(contentLength, [request, &millenniumFalconData](const std::shared_ptr<restbed::Session> aSession, const restbed::Bytes& aBody)
 			{
-				// TODO: Error handling
-				WhatAreTheOdds::EmpireData empireData;
-				empireData.Parse(nlohmann::json::parse(aBody.begin(), aBody.end()));
-				
-				nlohmann::json jsonResult = {
-					{ "odds", std::to_string(WhatAreTheOdds::Calculator::CalculateSuccessOdds(millenniumFalconData, empireData)) }
-				};
-
-				std::string response = jsonResult.dump();
-				aSession->close(restbed::OK, response, { { "Content-Length", std::to_string(response.size()) } });
+				try
+				{
+					WhatAreTheOdds::EmpireData empireData;
+					if (empireData.Parse(nlohmann::json::parse(aBody.begin(), aBody.end())))
+					{
+						nlohmann::json jsonResult = {
+							{ "odds", std::to_string(WhatAreTheOdds::Calculator::CalculateSuccessOdds(millenniumFalconData, empireData)) }
+						};
+						std::string response = jsonResult.dump();
+						aSession->close(restbed::OK, response, { { "Content-Length", std::to_string(response.size()) } });
+					}
+					else
+					{
+						std::string response = "The uploaded json file doesn't contain valid Empire data.";
+						aSession->close(restbed::BAD_REQUEST, response, { { "Content-Length", std::to_string(response.size()) } });
+					}
+				}
+				catch (const nlohmann::json::parse_error&)
+				{
+					std::string response = "The uploaded json file couldn't be parsed.";
+					aSession->close(restbed::BAD_REQUEST, response, { { "Content-Length", std::to_string(response.size()) } });
+				}
 			});
 		});
 

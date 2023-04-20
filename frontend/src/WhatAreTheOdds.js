@@ -4,12 +4,16 @@ function WhatAreTheOddsForm(props) {
 
   return(
     <div>
-      <label>Upload the Empire data</label>
       <div>
-        <input type="file"/>
+        <label>Upload the Empire data</label>
+      </div>
+      <div>
+        <input type="file" accept="application/JSON"/>
         <input type="button" value="Submit" onClick={props.onSubmitClicked}/>
       </div>
-      <label>Success odds: {props.odds}</label>
+      <div>
+        <label>{props.odds}</label>
+      </div>
     </div>
   );
 
@@ -19,16 +23,21 @@ class WhatAreTheOdds extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      odds: "Unknown",
+      odds: "Success odds: Unknown",
     };
   }
   
   onSubmitClicked() {
     var input = document.querySelector('input[type="file"]')
-    this.props.WhatAreTheOddsAPI.calculateOdds(input.files[0], (result)=> {
-      var oddsPercentage = Math.round(result * 100) + "%";
+    this.props.WhatAreTheOddsAPI.calculateOdds(input.files[0],
+    (oddsResult)=> {
       this.setState({
-        odds: oddsPercentage,
+        odds: "Success odds: " + oddsResult,
+      });
+    },
+    (errorResult) => {
+      this.setState({
+        odds: errorResult,
       });
     });
   }

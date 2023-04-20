@@ -4,24 +4,24 @@ class WhatAreTheOddsAPI {
     this.serviceAddress = serviceAddress;
   }
 
-  calculateOdds(file, callback) {
+  calculateOdds(file, successCallback, errorCallback) {
     fetch(this.serviceAddress, {
       method: 'POST',
       headers: {
         "Content-Type": "application/json"
       },
       body: file
-    }).then(
-      res => res.json()
-    ).then(
-      (response)=> {
-        console.log(response);
-        callback(response["odds"]);
-      },
-      (err)=> {
-        console.log(err);
+    }).then(response => {
+      if (response.ok) {
+        response.json().then(jsonResponse => {
+          successCallback(Math.round(jsonResponse["odds"] * 100) + "%");
+        })
+      } else {
+        response.text().then(textResponse => {
+          errorCallback(textResponse);
+        })
       }
-    );
+    });
   }
 }
 
