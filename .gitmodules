@@ -1,3 +1,9 @@
 [submodule "backend/ThirdParty/restbed/restbed"]
 	path = backend/ThirdParty/restbed/restbed
 	url = https://github.com/Corvusoft/restbed.git
+[submodule "backend/ThirdParty/nlohmannjson/json"]
+	path = backend/ThirdParty/nlohmannjson/json
+	url = https://github.com/nlohmann/json.git
+[submodule "backend/ThirdParty/restbed/asio"]
+	path = backend/ThirdParty/restbed/asio
+	url = https://github.com/Corvusoft/asio-dependency.git
