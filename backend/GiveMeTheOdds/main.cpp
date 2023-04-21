@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "WhatAreTheOdds.h"
+#include "OddsCalculator.h"
 
 int main(int argc, char* argv[])
 {

@@ -1,11 +1,7 @@
-﻿#pragma once
+#pragma once
 
-#include <string>
-#include <vector>
-#include <map>
-#include <set>
-
-#include "json.hpp"
+#include "MillenniumFalcon.h"
+#include "Empire.h"
 
 namespace WhatAreTheOdds
 {
@@ -17,25 +13,6 @@ namespace WhatAreTheOdds
 		int myNbEncounters = 0;
 	};
 	using MillenniumFalconPath = std::vector<MillenniumFalconState>;
-
-	struct MillenniumFalconData
-	{
-		bool Parse(const char* aJsonPath);
-
-		int myAutonomy = 0;
-		std::string myDeparture;
-		std::string myArrival;
-		std::map<std::string, std::vector<std::pair<std::string, int>>> myRoutes;
-	};
-
-	struct EmpireData
-	{
-		bool Parse(const char* aJsonPath);
-		bool Parse(const nlohmann::json& someData);
-
-		int myCountDown = 0;
-		std::map<std::string, std::set<int>> myBountyHunters;
-	};
 
 	class Calculator
 	{

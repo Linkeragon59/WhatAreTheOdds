@@ -3,8 +3,14 @@ cmake_minimum_required (VERSION 3.1.0)
 add_library(WhatAreTheOdds)
 target_sources(WhatAreTheOdds
 	PRIVATE
-		WhatAreTheOdds.h
-		WhatAreTheOdds.cpp
+		Utils.h
+		Utils.cpp
+		MillenniumFalcon.h
+		MillenniumFalcon.cpp
+		Empire.h
+		Empire.cpp
+		OddsCalculator.h
+		OddsCalculator.cpp
 )
 
 target_compile_features(WhatAreTheOdds PRIVATE cxx_std_23)
