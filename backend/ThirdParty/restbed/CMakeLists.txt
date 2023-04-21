@@ -67,7 +67,7 @@ target_sources(restbed
 		restbed/source/corvusoft/restbed/detail/web_socket_message_impl.hpp
 )
 
-target_compile_features(restbed PRIVATE cxx_std_23)
+target_compile_features(restbed PRIVATE cxx_std_17)
 if (WIN32)
 	target_compile_definitions(restbed PUBLIC WIN_DLL_EXPORT)
 	target_compile_definitions(restbed PUBLIC _WIN32_WINNT=0x0601)
