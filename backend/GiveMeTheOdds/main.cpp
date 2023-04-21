@@ -1,5 +1,4 @@
 #include <iostream>
-#include <cassert>
 
 #include "WhatAreTheOdds.h"
 
@@ -25,8 +24,8 @@ int main(int argc, char* argv[])
 		return EXIT_FAILURE;
 	}
 
-	float successOdds = WhatAreTheOdds::Calculator::CalculateSuccessOdds(millenniumFalconData, empireData);
-	assert(successOdds >= 0.f && successOdds <= 1.f);
+	WhatAreTheOdds::Calculator calculator(millenniumFalconData, empireData);
+	float successOdds = calculator.CalculateSuccessOdds();
 	std::cout << (int)std::round(successOdds * 100.f) << std::endl;
 
 	return EXIT_SUCCESS;

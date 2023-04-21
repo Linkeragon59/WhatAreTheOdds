@@ -40,8 +40,11 @@ int main(int argc, char* argv[])
 					WhatAreTheOdds::EmpireData empireData;
 					if (empireData.Parse(nlohmann::json::parse(aBody.begin(), aBody.end())))
 					{
+						WhatAreTheOdds::Calculator calculator(millenniumFalconData, empireData);
+						float successOdds = calculator.CalculateSuccessOdds();
+
 						nlohmann::json jsonResult = {
-							{ "odds", std::to_string(WhatAreTheOdds::Calculator::CalculateSuccessOdds(millenniumFalconData, empireData)) }
+							{ "odds", std::to_string(successOdds) }
 						};
 						std::string response = jsonResult.dump();
 						aSession->close(restbed::OK, response, { { "Content-Length", std::to_string(response.size()) } });
