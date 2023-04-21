@@ -28,7 +28,13 @@ class WhatAreTheOdds extends React.Component {
   }
   
   onSubmitClicked() {
-    var input = document.querySelector('input[type="file"]')
+    var input = document.querySelector('input[type="file"]');
+    if (input.files.length == 0) {
+      this.setState({
+        odds: "Please choose a file",
+      });
+      return;
+    }
     this.props.WhatAreTheOddsAPI.calculateOdds(input.files[0],
     (oddsResult)=> {
       this.setState({
